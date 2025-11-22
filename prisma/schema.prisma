@@ -9,11 +9,50 @@ datasource db {
 }
 
 model ParkingSpot {
-  id         String   @id @default(cuid())
-  createdAt  DateTime @default(now())
-  latitude   Float
-  longitude  Float
-  imageUrl   String
-  rawText    String?
-  parsedData Json?
+  id          String          @id @default(cuid())
+  createdAt   DateTime        @default(now())
+  latitude    Float
+  longitude   Float
+  imageUrl    String
+  description String? // Human-readable description of the parking spot
+  rawText     String? // OCR extracted text from the sign
+  periods     ParkingPeriod[] // One-to-many relationship with parking periods
+}
+
+model ParkingPeriod {
+  id            String      @id @default(cuid())
+  parkingSpotId String
+  parkingSpot   ParkingSpot @relation(fields: [parkingSpotId], references: [id], onDelete: Cascade)
+
+  // Time limit in minutes (e.g., 15, 30, 60, 120). Null means unrestricted.
+  timeLimitMins Int?
+
+  // Payment type
+  paymentType PaymentType @default(FREE)
+
+  // Days when this period is active (e.g., ["MON", "TUE", "WED", "THU", "FRI"])
+  // Null or empty means all days
+  daysOfWeek String[] @default([])
+
+  // Time range when this period is active (24-hour format, e.g., "08:00", "18:00")
+  // Null means all day
+  startTime String?
+  endTime   String?
+
+  // Special conditions (e.g., "Except Public Holidays", "Loading Zone", "Permit Holders")
+  specialConditions String?
+
+  createdAt DateTime @default(now())
+
+  @@index([parkingSpotId])
+  @@index([timeLimitMins])
+  @@index([paymentType])
+}
+
+enum PaymentType {
+  FREE // No payment required
+  METERED // Pay at meter
+  TICKET // Pay at ticket machine
+  PERMIT // Permit required
+  NO_PARKING // No parking allowed during this period
 }

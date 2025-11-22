@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import OpenAI from "openai";
 import { z } from "zod";
+import { OpenAIParkingResponseSchema } from "@/types/parking";
 import { supabase } from "@/utils/supabase";
 import { publicProcedure, router } from "../trpc";
 
@@ -57,14 +58,20 @@ export const parkingRouter = router({
         If it is NOT a parking sign, return JSON with "is_parking_sign": false.
         If it IS a parking sign, return JSON with:
         - "is_parking_sign": true
-        - restrictions: Array of objects with fields:
-          - start_time (string, e.g. "08:00")
-          - end_time (string, e.g. "18:00")
-          - days (array of strings, e.g. ["Mon", "Fri"])
-          - limit (string, e.g. "2P", "4P")
-          - type (string, e.g. "meter", "ticket", "free")
-        - raw_text: All text on the sign.
-        - summary: A short human-readable summary of the rules.
+        - "description": A brief human-readable description of the parking spot
+        - "periods": Array of parking period objects with fields:
+          - "time_limit_mins": Number of minutes allowed (e.g., 15, 30, 60, 120) or null for unrestricted
+          - "payment_type": One of "FREE", "METERED", "TICKET", "PERMIT", "NO_PARKING"
+          - "days_of_week": Array of day codes (e.g., ["MON", "TUE", "WED", "THU", "FRI"]) or empty array for all days
+          - "start_time": Start time in 24h format (e.g., "08:00") or null for all day
+          - "end_time": End time in 24h format (e.g., "18:00") or null for all day
+          - "special_conditions": Any special notes (e.g., "Except Public Holidays", "Loading Zone")
+        - "raw_text": All text visible on the sign.
+        
+        Examples:
+        - "2P Mon-Fri 8am-6pm Meter" → time_limit_mins: 120, payment_type: "METERED", days_of_week: ["MON","TUE","WED","THU","FRI"], start_time: "08:00", end_time: "18:00"
+        - "1/2P Ticket" → time_limit_mins: 30, payment_type: "TICKET", days_of_week: [], start_time: null, end_time: null
+        - "No Parking 7am-9am Mon-Fri" → time_limit_mins: null, payment_type: "NO_PARKING", days_of_week: ["MON","TUE","WED","THU","FRI"], start_time: "07:00", end_time: "09:00"
       `;
 
 			const response = await openai.chat.completions.create({
@@ -82,20 +89,39 @@ export const parkingRouter = router({
 			});
 
 			const content = response.choices[0].message.content;
-			const parsedData = content ? JSON.parse(content) : null;
+			if (!content) {
+				throw new Error("No response from OpenAI");
+			}
 
-			if (!parsedData || parsedData.is_parking_sign === false) {
+			// Parse and validate the OpenAI response with Zod
+			const parsedJson = JSON.parse(content);
+			const parsedData = OpenAIParkingResponseSchema.parse(parsedJson);
+
+			if (!parsedData.is_parking_sign) {
 				throw new Error("Could not recognize a parking sign in this image.");
 			}
 
-			// 3. Save to DB
+			// 3. Save to DB with parking periods
 			const spot = await prisma.parkingSpot.create({
 				data: {
 					latitude,
 					longitude,
 					imageUrl: publicUrl || "placeholder", // Fallback if upload fails
-					rawText: parsedData?.raw_text || "",
-					parsedData: parsedData || {},
+					description: parsedData.description || null,
+					rawText: parsedData.raw_text || null,
+					periods: {
+						create: (parsedData.periods || []).map((period) => ({
+							timeLimitMins: period.time_limit_mins,
+							paymentType: period.payment_type,
+							daysOfWeek: period.days_of_week,
+							startTime: period.start_time,
+							endTime: period.end_time,
+							specialConditions: period.special_conditions || null,
+						})),
+					},
+				},
+				include: {
+					periods: true,
 				},
 			});
 
@@ -127,10 +153,10 @@ export const parkingRouter = router({
 						lte: bounds.east,
 					},
 				},
+				include: {
+					periods: true, // Include related parking periods
+				},
 			});
-			return spots.map((spot) => ({
-				...spot,
-				parsedData: spot.parsedData as unknown,
-			}));
+			return spots;
 		}),
 });

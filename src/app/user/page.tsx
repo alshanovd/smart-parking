@@ -8,11 +8,7 @@ import {
 } from "@react-google-maps/api";
 import Link from "next/link";
 import { useCallback, useState } from "react";
-import type {
-	ParkingRestriction,
-	ParkingSpot,
-	ParsedParkingData,
-} from "@/types/parking";
+import type { ParkingSpot } from "@/types/parking";
 import { trpc } from "@/utils/trpc";
 
 const mapContainerStyle = {
@@ -118,33 +114,53 @@ export default function UserPage() {
 									/>
 								)}
 							<div className="text-sm">
-								<p className="mb-2">
-									<strong>Summary:</strong>{" "}
-									{(selectedSpot.parsedData as ParsedParkingData | null)
-										?.summary || "No summary"}
-								</p>
-								{(selectedSpot.parsedData as ParsedParkingData | null)
-									?.restrictions &&
-									(selectedSpot.parsedData as ParsedParkingData).restrictions!
-										.length > 0 && (
-										<div className="mt-2 p-2 bg-slate-100 rounded">
-											<strong>Restrictions:</strong>
-											<ul className="list-disc pl-4 mt-1 space-y-1">
-												{(
-													selectedSpot.parsedData as ParsedParkingData
-												).restrictions!.map(
-													(r: ParkingRestriction, i: number) => (
-														<li key={i}>
-															<span className="font-semibold">
-																{r.limit} {r.type}
-															</span>
-															: {r.start_time}-{r.end_time}
-														</li>
-													),
-												)}
-											</ul>
-										</div>
-									)}
+								{selectedSpot.description && (
+									<p className="mb-2">
+										<strong>Description:</strong> {selectedSpot.description}
+									</p>
+								)}
+
+								{selectedSpot.periods && selectedSpot.periods.length > 0 && (
+									<div className="mt-2 p-2 bg-slate-100 rounded">
+										<strong>Parking Periods:</strong>
+										<ul className="list-disc pl-4 mt-1 space-y-2">
+											{selectedSpot.periods.map((period) => (
+												<li key={period.id}>
+													<div>
+														<span className="font-semibold">
+															{period.timeLimitMins
+																? `${period.timeLimitMins} min`
+																: "Unrestricted"}{" "}
+															- {period.paymentType}
+														</span>
+														{period.daysOfWeek.length > 0 && (
+															<div className="text-xs text-slate-600">
+																Days: {period.daysOfWeek.join(", ")}
+															</div>
+														)}
+														{(period.startTime || period.endTime) && (
+															<div className="text-xs text-slate-600">
+																Time: {period.startTime || "00:00"} -{" "}
+																{period.endTime || "23:59"}
+															</div>
+														)}
+														{period.specialConditions && (
+															<div className="text-xs text-slate-500 italic">
+																{period.specialConditions}
+															</div>
+														)}
+													</div>
+												</li>
+											))}
+										</ul>
+									</div>
+								)}
+
+								{selectedSpot.rawText && (
+									<p className="mt-2 text-xs text-slate-600">
+										<strong>Raw Text:</strong> {selectedSpot.rawText}
+									</p>
+								)}
 							</div>
 						</div>
 					</InfoWindow>
