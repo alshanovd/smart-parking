@@ -9,13 +9,23 @@ I have successfully initialized the SmartParking application.
 4.  **Backend**:
     *   Set up tRPC server and client.
     *   Implemented `uploadParkingPlate` procedure to analyze images with OpenAI and save to DB.
+    *   **Added error handling**: Now detects if an uploaded image is NOT a parking sign and throws a specific error.
     *   Implemented `getParkingSpots` procedure to fetch spots within map bounds.
 5.  **Frontend**:
-    *   **Landing Page**: Mode selection (Contributor/User).
-    *   **Contributor Page**: Camera/File upload, Geolocation, and submission logic.
-    *   **User Page**: Google Map integration with markers and info windows.
-6.  **Configuration**: Downgraded Prisma to v5 for stability and configured build scripts.
+    *   **Landing Page**: Mode selection (Contributor/User). Updated to a **dark slate theme** with centered buttons.
+    *   **Contributor Page**: Camera/File upload, Geolocation, and submission logic. Updated to **dark slate theme** with centered "Use Current" button. Added **error notifications** for unrecognized plates.
+    *   **User Page**: Google Map integration with markers and info windows. Updated map styles to match the dark theme. Moved **Back button** down for better visibility.
+6.  **Configuration**: Downgraded Prisma to v5 for stability and configured build scripts. Added Google Maps API Key.
+
+## Verification
+*   **Automated Tests**: Verified build passes with `npm run build`.
+*   **Manual Verification**:
+    *   Verified Landing Page layout and dark theme.
+    *   Verified Contributor Page layout and button centering.
+    *   Verified User Page map loading and visibility.
+    *   Verified User Page back button position.
+    *   Captured screenshots for UI verification.
 
 ## Next Steps for User
-1.  **Google Maps Key**: You need to obtain a Google Maps API Key and set it as `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` in your environment (and Vercel).
-2.  **Deployment**: Push to GitHub and import into Vercel. Add the environment variables listed in `README.md`.
+1.  **Deployment**: Push to GitHub and import into Vercel. Add the environment variables listed in `README.md`.
+
