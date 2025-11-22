@@ -36,7 +36,7 @@ export default function ContributorPage() {
 					});
 				},
 				(error) => {
-					alert("Error getting location: " + error.message);
+					alert(`Error getting location: ${error.message}`);
 				},
 			);
 		} else {
@@ -106,23 +106,79 @@ export default function ContributorPage() {
 						onChange={handleFileChange}
 					/>
 
-					<div className="flex flex-col items-center gap-3 bg-slate-800 p-4 rounded-xl border border-slate-700 w-full">
-						<div className="text-center w-full">
-							<p className="text-sm font-semibold text-slate-300">Location</p>
-							<p className="text-xs text-slate-500 font-mono mt-1">
-								{coords
-									? `${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)}`
-									: "Not set"}
+					<div className="flex flex-col gap-3 bg-slate-800 p-4 rounded-xl border border-slate-700 w-full">
+						<div className="w-full">
+							<p className="text-sm font-semibold text-slate-300 mb-3">
+								Location
 							</p>
+
+							<div className="flex flex-col gap-3">
+								<div className="flex flex-col gap-1">
+									<label
+										htmlFor="latitude"
+										className="text-xs text-slate-400 font-medium"
+									>
+										Latitude
+									</label>
+									<input
+										id="latitude"
+										type="number"
+										step="any"
+										value={coords?.lat ?? ""}
+										onChange={(e) => {
+											const value = e.target.value;
+											if (value === "") {
+												setCoords(null);
+											} else {
+												setCoords({
+													lat: parseFloat(value),
+													lng: coords?.lng ?? 0,
+												});
+											}
+										}}
+										placeholder="Enter latitude"
+										className="bg-slate-900 border border-slate-700 rounded-md px-3 py-2 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500"
+									/>
+								</div>
+
+								<div className="flex flex-col gap-1">
+									<label
+										htmlFor="longitude"
+										className="text-xs text-slate-400 font-medium"
+									>
+										Longitude
+									</label>
+									<input
+										id="longitude"
+										type="number"
+										step="any"
+										value={coords?.lng ?? ""}
+										onChange={(e) => {
+											const value = e.target.value;
+											if (value === "") {
+												setCoords(null);
+											} else {
+												setCoords({
+													lat: coords?.lat ?? 0,
+													lng: parseFloat(value),
+												});
+											}
+										}}
+										placeholder="Enter longitude"
+										className="bg-slate-900 border border-slate-700 rounded-md px-3 py-2 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500"
+									/>
+								</div>
+							</div>
 						</div>
+
 						<Button
 							size="sm"
 							color="primary"
 							variant="flat"
 							onPress={getLocation}
-							className="bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 w-full max-w-xs flex rounded-sm py-2"
+							className="bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 w-full flex rounded-sm py-2"
 						>
-							<FaLocationArrow /> Use Current Location
+							<FaLocationArrow /> My Coordinates
 						</Button>
 					</div>
 
