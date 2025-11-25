@@ -24,3 +24,7 @@ body {
   background: #020617; /* slate-950 */
   font-family: Arial, Helvetica, sans-serif;
 }
+
+.select-parking-filter svg {
+  display: none !important;
+}

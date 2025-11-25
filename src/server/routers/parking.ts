@@ -137,10 +137,42 @@ export const parkingRouter = router({
 					east: z.number(),
 					west: z.number(),
 				}),
+				filter: z.string().optional(), // "1P", "2P", "4P", "Loading"
 			}),
 		)
 		.query(async ({ input }) => {
-			const { bounds } = input;
+			const { bounds, filter } = input;
+
+			let periodFilter: any = {};
+
+			if (filter) {
+				if (filter === "1P") {
+					periodFilter = {
+						some: {
+							timeLimitMins: 60,
+						},
+					};
+				} else if (filter === "2P") {
+					periodFilter = {
+						some: {
+							timeLimitMins: 120,
+						},
+					};
+				} else if (filter === "4P") {
+					periodFilter = {
+						some: {
+							timeLimitMins: 240,
+						},
+					};
+				} else if (filter === "Loading") {
+					periodFilter = {
+						some: {
+							timeLimitMins: null, // Unrestricted / Loading usually has no time limit or specific loading condition
+						},
+					};
+				}
+			}
+
 			// Simple rectangular bounds query
 			const spots = await prisma.parkingSpot.findMany({
 				where: {
@@ -152,6 +184,7 @@ export const parkingRouter = router({
 						gte: bounds.west,
 						lte: bounds.east,
 					},
+					...(filter ? { periods: periodFilter } : {}),
 				},
 				include: {
 					periods: true, // Include related parking periods

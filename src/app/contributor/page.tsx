@@ -1,9 +1,20 @@
 "use client";
-import { Button, Card, CardBody } from "@heroui/react";
+import { Button, Card, CardBody, Spinner } from "@heroui/react";
+import { GoogleMap, useLoadScript } from "@react-google-maps/api";
 import Link from "next/link";
-import { useRef, useState } from "react";
-import { FaCamera, FaLocationArrow } from "react-icons/fa";
+import { useCallback, useRef, useState } from "react";
+import { FaCamera, FaLocationArrow, FaMapMarkerAlt } from "react-icons/fa";
 import { trpc } from "@/utils/trpc";
+
+const mapContainerStyle = {
+	width: "100%",
+	height: "100%",
+};
+
+const defaultCenter = {
+	lat: -33.8688, // Sydney
+	lng: 151.2093,
+};
 
 export default function ContributorPage() {
 	const [image, setImage] = useState<string | null>(null);
@@ -11,7 +22,15 @@ export default function ContributorPage() {
 		null,
 	);
 	const [loading, setLoading] = useState(false);
+	const [showMap, setShowMap] = useState(false);
+	const [mapCenter, setMapCenter] = useState(defaultCenter);
+	const mapRef = useRef<google.maps.Map | null>(null);
+
 	const fileInputRef = useRef<HTMLInputElement>(null);
+
+	const { isLoaded } = useLoadScript({
+		googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
+	});
 
 	const uploadMutation = trpc.parking.uploadParkingPlate.useMutation();
 
@@ -30,10 +49,15 @@ export default function ContributorPage() {
 		if (navigator.geolocation) {
 			navigator.geolocation.getCurrentPosition(
 				(position) => {
-					setCoords({
+					const newCoords = {
 						lat: position.coords.latitude,
 						lng: position.coords.longitude,
-					});
+					};
+					setCoords(newCoords);
+					setMapCenter(newCoords);
+					if (mapRef.current) {
+						mapRef.current.panTo(newCoords);
+					}
 				},
 				(error) => {
 					alert(`Error getting location: ${error.message}`);
@@ -63,6 +87,81 @@ export default function ContributorPage() {
 			setLoading(false);
 		}
 	};
+
+	const onMapLoad = useCallback((map: google.maps.Map) => {
+		mapRef.current = map;
+	}, []);
+
+	const handleCenterChanged = () => {
+		if (mapRef.current) {
+			const center = mapRef.current.getCenter();
+			if (center) {
+				setMapCenter({ lat: center.lat(), lng: center.lng() });
+			}
+		}
+	};
+
+	const confirmMapLocation = () => {
+		setCoords(mapCenter);
+		setShowMap(false);
+	};
+
+	if (showMap) {
+		if (!isLoaded) return <Spinner size="lg" />;
+		return (
+			<div className="fixed inset-0 z-50 bg-slate-950">
+				<div className="absolute top-4 left-4 z-10">
+					<Button
+						onPress={() => setShowMap(false)}
+						className="bg-slate-900/90 backdrop-blur border border-slate-700 text-slate-200 px-4 py-2 rounded-lg shadow-lg font-medium cursor-pointer hover:bg-slate-800 transition-colors flex items-center gap-2"
+					>
+						← Back
+					</Button>
+				</div>
+
+				<div className="absolute inset-0">
+					<GoogleMap
+						mapContainerStyle={mapContainerStyle}
+						zoom={18}
+						center={coords || defaultCenter}
+						onLoad={onMapLoad}
+						onCenterChanged={handleCenterChanged}
+						options={{
+							disableDefaultUI: true,
+							zoomControl: false,
+						}}
+					/>
+					{/* Center Crosshair */}
+					<div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none z-10">
+						<FaMapMarkerAlt className="text-red-500 text-4xl -mt-8" />
+					</div>
+
+					{/* "I'm here" button */}
+					<div className="absolute right-4 top-1/2 transform -translate-y-1/2 z-10">
+						<Button
+							isIconOnly
+							className="bg-white text-slate-900 shadow-lg rounded-full p-3"
+							onPress={getLocation}
+						>
+							<FaLocationArrow size={20} />
+						</Button>
+					</div>
+
+					{/* "The plate is here" button */}
+					<div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10 w-full max-w-xs px-4">
+						<Button
+							color="primary"
+							className="bg-slate-900/90 backdrop-blur border border-slate-700 text-slate-200 px-4 py-2 rounded-lg shadow-lg font-medium cursor-pointer hover:bg-slate-800 transition-colors flex items-center gap-2"
+							size="lg"
+							onPress={confirmMapLocation}
+						>
+							The plate is here
+						</Button>
+					</div>
+				</div>
+			</div>
+		);
+	}
 
 	return (
 		<div className="min-h-screen bg-slate-950 p-4 flex flex-col items-center justify-center">
@@ -171,15 +270,26 @@ export default function ContributorPage() {
 							</div>
 						</div>
 
-						<Button
-							size="sm"
-							color="primary"
-							variant="flat"
-							onPress={getLocation}
-							className="bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 w-full flex rounded-sm py-2"
-						>
-							<FaLocationArrow /> My Coordinates
-						</Button>
+						<div className="flex gap-2">
+							<Button
+								size="sm"
+								color="primary"
+								variant="flat"
+								onPress={getLocation}
+								className="bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 flex-1 rounded-sm py-2 flex"
+							>
+								<FaLocationArrow /> My Coordinates
+							</Button>
+							<Button
+								size="sm"
+								color="secondary"
+								variant="flat"
+								onPress={() => setShowMap(true)}
+								className="flex bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 flex-1 rounded-sm py-2"
+							>
+								<FaMapMarkerAlt /> Point on map
+							</Button>
+						</div>
 					</div>
 
 					<Button
