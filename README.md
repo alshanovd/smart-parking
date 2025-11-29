@@ -1,6 +1,6 @@
 # SmartParking
 
-Smart parking application with Contributor and User modes.
+Smart parking application with Contributor and User modes. You might check the app out [here](https://smart-parking-azure.vercel.app/).
 
 ## Features
 - **Contributor Mode**: Upload parking plate photos, extract data using AI, and save to database.
