@@ -314,12 +314,16 @@ export default function UserPage() {
 											Route to Sign
 										</Button>
 									</DropdownTrigger>
-									<DropdownMenu aria-label="Route options">
+									<DropdownMenu
+										aria-label="Route options"
+										className="bg-slate-900/90 rounded-md"
+									>
 										<DropdownItem
 											key="google-maps"
 											href={`https://www.google.com/maps/search/?api=1&query=${selectedSpot.latitude},${selectedSpot.longitude}`}
 											target="_blank"
 											rel="noopener noreferrer"
+											className="p-5"
 										>
 											Google Maps
 										</DropdownItem>
@@ -328,6 +332,7 @@ export default function UserPage() {
 											href={`https://waze.com/ul?ll=${selectedSpot.latitude},${selectedSpot.longitude}&navigate=yes`}
 											target="_blank"
 											rel="noopener noreferrer"
+											className="p-5"
 										>
 											Waze
 										</DropdownItem>
@@ -336,6 +341,7 @@ export default function UserPage() {
 											href={`http://maps.apple.com/?ll=${selectedSpot.latitude},${selectedSpot.longitude}`}
 											target="_blank"
 											rel="noopener noreferrer"
+											className="p-5"
 										>
 											Apple Maps
 										</DropdownItem>
