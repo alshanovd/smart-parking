@@ -1,5 +1,14 @@
 "use client";
-import { Button, Select, SelectItem, Spinner } from "@heroui/react";
+import {
+	Button,
+	Dropdown,
+	DropdownItem,
+	DropdownMenu,
+	DropdownTrigger,
+	Select,
+	SelectItem,
+	Spinner,
+} from "@heroui/react";
 import {
 	GoogleMap,
 	InfoWindow,
@@ -292,6 +301,46 @@ export default function UserPage() {
 										</p>
 									)}
 								</div>
+							</div>
+							<div className="mt-3 md:hidden">
+								<Dropdown>
+									<DropdownTrigger>
+										<Button
+											color="primary"
+											size="sm"
+											className="w-full font-semibold flex"
+										>
+											<FaLocationArrow />
+											Route to Sign
+										</Button>
+									</DropdownTrigger>
+									<DropdownMenu aria-label="Route options">
+										<DropdownItem
+											key="google-maps"
+											href={`https://www.google.com/maps/search/?api=1&query=${selectedSpot.latitude},${selectedSpot.longitude}`}
+											target="_blank"
+											rel="noopener noreferrer"
+										>
+											Google Maps
+										</DropdownItem>
+										<DropdownItem
+											key="waze"
+											href={`https://waze.com/ul?ll=${selectedSpot.latitude},${selectedSpot.longitude}&navigate=yes`}
+											target="_blank"
+											rel="noopener noreferrer"
+										>
+											Waze
+										</DropdownItem>
+										<DropdownItem
+											key="apple-maps"
+											href={`http://maps.apple.com/?ll=${selectedSpot.latitude},${selectedSpot.longitude}`}
+											target="_blank"
+											rel="noopener noreferrer"
+										>
+											Apple Maps
+										</DropdownItem>
+									</DropdownMenu>
+								</Dropdown>
 							</div>
 						</div>
 					</InfoWindow>

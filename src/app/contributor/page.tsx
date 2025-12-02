@@ -277,7 +277,7 @@ export default function ContributorPage() {
 								color="primary"
 								variant="flat"
 								onPress={getLocation}
-								className="bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 flex-1 rounded-sm py-2 flex"
+								className="bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 flex-1 rounded-sm py-2 flex flex-col md:flex-row"
 							>
 								<FaLocationArrow /> My Coordinates
 							</Button>
@@ -286,7 +286,7 @@ export default function ContributorPage() {
 								color="secondary"
 								variant="flat"
 								onPress={() => setShowMap(true)}
-								className="flex bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 flex-1 rounded-sm py-2"
+								className="flex bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 flex-1 rounded-sm py-2 flex-col md:flex-row"
 							>
 								<FaMapMarkerAlt /> Point on map
 							</Button>
