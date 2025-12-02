@@ -17,6 +17,11 @@ export const metadata: Metadata = {
 	title: "Smart Parking",
 	description:
 		"Crowdsourced parking spot finder - discover and share available parking spaces",
+	appleWebApp: {
+		capable: true,
+		statusBarStyle: "default",
+		title: "Smart Parking",
+	},
 };
 
 export default function RootLayout({

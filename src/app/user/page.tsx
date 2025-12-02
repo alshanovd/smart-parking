@@ -48,6 +48,8 @@ export default function UserPage() {
 		undefined,
 	);
 
+	const [markSize, setMarkSize] = useState<number>(50);
+
 	const { data: spots, isFetching } = trpc.parking.getParkingSpots.useQuery(
 		{ bounds: bounds!, filter: appliedFilter },
 		{ enabled: !!bounds, placeholderData: keepPreviousData },
@@ -78,6 +80,11 @@ export default function UserPage() {
 	const handleReset = () => {
 		setFilterValue("");
 		setAppliedFilter(undefined);
+	};
+
+	const onZoomChanged = () => {
+		const size = (map?.getZoom() || 15) * 5;
+		setMarkSize(size);
 	};
 
 	const getLocation = () => {
@@ -180,6 +187,7 @@ export default function UserPage() {
 			</div>
 
 			<GoogleMap
+				onZoomChanged={onZoomChanged}
 				mapContainerStyle={mapContainerStyle}
 				zoom={15}
 				center={center}
@@ -191,6 +199,7 @@ export default function UserPage() {
 					mapTypeControl: false,
 					streetViewControl: false,
 					fullscreenControl: false,
+					gestureHandling: "greedy",
 				}}
 			>
 				{spots?.map((spot) => (
@@ -200,7 +209,7 @@ export default function UserPage() {
 						onClick={() => setSelectedSpot(spot)}
 						icon={{
 							url: getMarkerIcon(spot),
-							scaledSize: new google.maps.Size(40, 50),
+							scaledSize: new google.maps.Size(markSize, markSize),
 						}}
 					/>
 				))}

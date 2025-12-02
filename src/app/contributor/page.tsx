@@ -129,6 +129,7 @@ export default function ContributorPage() {
 						options={{
 							disableDefaultUI: true,
 							zoomControl: false,
+							gestureHandling: "greedy",
 						}}
 					/>
 					{/* Center Crosshair */}
